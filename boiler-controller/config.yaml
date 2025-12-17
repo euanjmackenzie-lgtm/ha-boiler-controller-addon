@@ -1,4 +1,14 @@
-FROM alpine:3.19
-COPY run.sh /run.sh
-RUN chmod +x /run.sh
-CMD ["/run.sh"]
+name: Boiler Controller Installer
+slug: boiler_controller_installer
+description: Installs and updates the Home Assistant Boiler Controller package
+version: 1.0.0
+startup: once
+boot: manual
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - armhf
+map:
+  - config:rw
+init: false
