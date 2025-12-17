@@ -1,0 +1,16 @@
+template:
+  - binary_sensor:
+      - name: Boiler Running
+        unique_id: boiler_running
+        device_class: running
+        state: >
+          {{ state_attr('sensor.hall_thermostat_temperature','temperature') | float(0) > 16.5 }}
+
+sensor:
+  - platform: history_stats
+    name: Boiler On Time Today
+    entity_id: binary_sensor.boiler_running
+    state: "on"
+    type: time
+    start: "{{ today_at() }}"
+    end: "{{ now() }}"
