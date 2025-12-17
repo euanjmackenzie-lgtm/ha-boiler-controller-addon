@@ -1,0 +1,47 @@
+automation:
+  - alias: Boiler Controller
+    mode: restart
+    trigger:
+      - platform: time_pattern
+        minutes: "/2"
+
+    condition:
+      - condition: state
+        entity_id: input_boolean.boiler_advanced_mode
+        state: "on"
+
+    action:
+      - variables:
+          standby_temp: 16.0
+          active_temp: 22.0
+          boiler: climate.hall_thermostat
+          rooms:
+            - climate.bathroom_thermostat
+            - climate.bedroom_thermostat
+            - climate.innes_room_thermostat
+            - climate.kitchen_thermostat
+            - climate.living_room_thermostat
+            - climate.office_thermostat
+
+      - choose:
+          - conditions: >
+              {{ rooms | select('is_state_attr','hvac_action','heating') | list | count > 0 }}
+            sequence:
+              - service: climate.set_temperature
+                target:
+                  entity_id: "{{ boiler }}"
+                data:
+                  temperature: "{{ active_temp }}"
+
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.boiler_heat_source
+                data:
+                  value: >
+                    {{ rooms | select('is_state_attr','hvac_action','heating') | list | first }}
+        default:
+          - service: climate.set_temperature
+            target:
+              entity_id: "{{ boiler }}"
+            data:
+              temperature: "{{ standby_temp }}"
