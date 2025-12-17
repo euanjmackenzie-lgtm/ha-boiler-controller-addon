@@ -1,0 +1,87 @@
+automation:
+  - alias: Boiler Controller (Hardened)
+    mode: restart
+
+    trigger:
+      - platform: time_pattern
+        minutes: "/2"
+
+    condition:
+      - condition: state
+        entity_id: input_boolean.boiler_advanced_mode
+        state: "on"
+
+    action:
+      - variables:
+          boiler: climate.hall_thermostat
+          standby_temp: 19.0
+          active_temp: 22.0
+          rooms:
+            - climate.bathroom_thermostat
+            - climate.bedroom_thermostat
+            - climate.innes_room_thermostat
+            - climate.kitchen_thermostat
+            - climate.living_room_thermostat
+            - climate.office_thermostat
+
+
+      # DEBUG LOGGING
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.boiler_debug
+                state: "on"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: warning
+                  message: >
+                    Boiler check —
+                    Heating rooms: {{
+                      expand(rooms)
+                      | selectattr('attributes.hvac_action','defined')
+                      | selectattr('attributes.hvac_action','eq','heating')
+                      | map(attribute='entity_id')
+                      | list
+                    }}
+
+      # HEAT LOGIC
+      - choose:
+          - conditions: >
+              {{ expand(rooms)
+                 | select(
+                     'lambda s: (
+                       (s.attributes.hvac_action is defined and s.attributes.hvac_action == \"heating\")
+                       or
+                       (s.state == \"heat\" and
+                        s.attributes.current_temperature is defined and
+                        s.attributes.temperature is defined and
+                        s.attributes.current_temperature < s.attributes.temperature - 0.3)
+                     )'
+                   )
+                 | list
+                 | count > 0 }}
+            sequence:
+              - service: climate.set_temperature
+                target:
+                  entity_id: "{{ boiler }}"
+                data:
+                  temperature: "{{ active_temp }}"
+
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.boiler_heat_source
+                data:
+                  value: >
+                    {{ expand(rooms)
+                       | selectattr('attributes.hvac_action','defined')
+                       | selectattr('attributes.hvac_action','eq','heating')
+                       | map(attribute='entity_id')
+                       | list
+                       | first | default('fallback') }}
+        default:
+          - service: climate.set_temperature
+            target:
+              entity_id: "{{ boiler }}"
+            data:
+              temperature: "{{ standby_temp }}"
