@@ -4,7 +4,7 @@ template:
         unique_id: boiler_running
         device_class: running
         state: >
-          {{ state_attr('sensor.hall_thermostat_temperature','temperature') | float(0) > 16.5 }}
+          {{ state_attr('climate.hall_thermostat','temperature') | float(0) > 16.5 }}
 
 sensor:
   - platform: history_stats
