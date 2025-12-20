@@ -1,9 +1,0 @@
-alert:
-  boiler_stuck_on:
-    name: Boiler Running Too Long
-    entity_id: binary_sensor.boiler_running
-    state: "on"
-    repeat: 240
-    can_acknowledge: true
-    skip_first: true
-    message: Boiler has been running continuously for over 2 hours.
