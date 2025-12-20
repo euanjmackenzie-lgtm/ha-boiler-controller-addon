@@ -1,0 +1,21 @@
+input_boolean:
+  boiler_advanced_mode:
+    name: Boiler Advanced Mode
+    icon: mdi:brain
+
+  boiler_debug:
+    name: Boiler Debug Logging
+    icon: mdi:bug
+
+input_number:
+  boiler_min_run_minutes:
+    name: Minimum Boiler Run Time
+    min: 5
+    max: 60
+    step: 1
+    unit_of_measurement: min
+    initial: 10
+
+input_text:
+  boiler_heat_source:
+    name: Boiler Heat Source
